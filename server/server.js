@@ -1,0 +1,42 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import { errorHandler, notFound } from './middleware/errorMiddleware.js';
+import connectDB from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
+
+dotenv.config();
+connectDB();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(helmet());
+
+// Logging
+if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+}
+
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// --- Routes ---
+app.use('/api/auth', authRoutes);
+
+// --- Error Handling ---
+app.use(notFound);
+app.use(errorHandler);
+
+app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+});
