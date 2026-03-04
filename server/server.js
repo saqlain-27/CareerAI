@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -32,6 +33,7 @@ app.use(cookieParser());
 
 // --- Routes ---
 app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
 
 // --- Error Handling ---
 app.use(notFound);
