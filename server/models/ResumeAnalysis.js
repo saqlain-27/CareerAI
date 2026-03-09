@@ -12,11 +12,11 @@ const resumeAnalysisSchema = mongoose.Schema(
             required: true,
         },
         jobDescription: {
-            type: String, // Optional: if the user wants purely general feedback
+            type: String,
         },
         resumeText: {
             type: String,
-            required: true, // Crucial for reusability/debugging
+            required: true,
         },
         atsScore: {
             type: Number,

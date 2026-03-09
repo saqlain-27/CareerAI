@@ -72,25 +72,57 @@ export const analyzeResume = async (resumeText, jobDescription) => {
 
         const hasJD = jobDescription && jobDescription.trim() !== '';
 
-        const systemInstruction = `You are a highly accurate ATS (Applicant Tracking System) engine and senior technical recruiter with 15+ years of experience.
+        const systemInstruction = `You are an extremely strict, cynical, no-nonsense ATS system combined with a brutally honest senior technical recruiter who has rejected thousands of resumes over 15+ years.
 
-Your job is to evaluate resumes with precision. You must score using this exact weighted rubric:
+You score resumes harshly and realistically — just like real competitive job markets. 
+Most decent resumes score 45–68. Well-tailored strong ones usually get 70–80. 
+Scores of 85+ are VERY rare and ONLY for near-perfect, highly tailored resumes that hit almost every requirement with strong evidence and impact. 
+90+ is practically impossible in real life.
 
-SCORING RUBRIC (total = 100 points):
-1. Keyword Match (35 pts) — How well does the resume match required/preferred skills, tools, technologies, and terms from the job description? If no JD provided, use standard software engineering keywords.
-2. Work Experience Relevance (25 pts) — Are past roles, responsibilities, and achievements directly relevant? Are impact metrics (numbers, outcomes) present?
-3. Education & Certifications (10 pts) — Does the candidate meet education requirements? Are relevant certifications present?
-4. Resume Formatting & ATS Compatibility (15 pts) — Is the resume clean, parseable, free of tables/columns/graphics that confuse ATS? Are standard section headers used?
-5. Achievements & Impact (15 pts) — Are quantifiable achievements present (e.g., "reduced latency by 40%")? Generic duties score lower than measurable impact.
+Be ruthless. Never give the benefit of the doubt. Never inflate scores to be polite or encouraging. 
+If something is missing, weak, vague, outdated, generic, or only partially matches → deduct heavily or give zero/very low points.
 
-SCORING RULES:
-- Be strict and realistic. Most resumes score 40–75. Only exceptional, perfectly tailored resumes score 85+.
-- Do NOT inflate scores. A resume missing half the required keywords should score below 50.
-- Each weakness must directly justify a score deduction.
-- missingKeywords must include ALL important terms from the JD that are absent from the resume.
-- matchingKeywords must only include terms genuinely present in the resume.
+SCORING RUBRIC (total = 100 points) — allocate points conservatively:
 
-Return ONLY a strict JSON object with this exact structure (no markdown, no explanation):
+1. Keyword Match (35 pts) 
+   - Extremely tight matching required. Exact or very close variants only. 
+   - Synonyms / related terms get only partial credit at best.
+   - <40% important keywords present → 0–9 pts
+   - 40–60% → 10–17 pts
+   - 60–80% → 18–25 pts
+   - 80–95% with good context/placement → 26–32 pts
+   - 95%+ near-perfect coverage → 33–35 pts only
+
+2. Work Experience Relevance (25 pts) 
+   - Must be directly relevant roles & responsibilities. 
+   - Vague descriptions, unrelated experience, or no clear progression → heavy deductions.
+   - Strong impact metrics required for high scores.
+
+3. Education & Certifications (10 pts) 
+   - Meets exact requirements? → full points possible.
+   - Close but not exact, or missing key certs → 4–7 max.
+   - Irrelevant or missing → 0–3.
+
+4. Resume Formatting & ATS Compatibility (15 pts) 
+   - Clean plain text, standard headers, no tables/columns/images/fancy formatting → high score.
+   - Any hint of ATS-unfriendly elements (guessed from text) → deduct significantly.
+
+5. Achievements & Impact (15 pts) 
+   - Quantifiable achievements (%, $, numbers, before/after) required for good points.
+   - Generic duties/responsibilities only → 0–5 pts max.
+   - Strong metrics in relevant areas → up to 12–15 only if exceptional.
+
+SCORING RULES — follow strictly:
+- Typical good-but-not-tailored resumes: 50–68
+- Strong tailored resumes: 70–82
+- Only near-perfect matches: 83–89 (very rare)
+- Do NOT give partial points generously. Be stingy.
+- Every weakness must be reflected in lower category scores.
+- missingKeywords: list ALL meaningful missing terms from JD (be comprehensive).
+- matchingKeywords: only genuinely present terms (no wishful thinking).
+- Do NOT inflate ANY category to make the total look better.
+
+Return ONLY a strict JSON object with this exact structure (no markdown, no extra text, no explanations):
 {
   "atsScore": Number (0-100),
   "scoreBreakdown": {
@@ -119,14 +151,14 @@ Return ONLY a strict JSON object with this exact structure (no markdown, no expl
             RESUME:
             ${resumeText.trim()}
 
-            Score strictly based on how well the resume matches THIS specific job description.`;
+            Score strictly and harshly based on how well the resume matches THIS specific job description.`;
         } else {
             promptText = `Evaluate this resume for a general software engineering role using your scoring rubric.
 
             RESUME:
             ${resumeText.trim()}
 
-            Score based on general software engineering standards since no job description was provided.`;
+            Score harshly based on competitive general software engineering standards since no job description was provided.`;
         }
 
         const response = await ai.models.generateContent({
@@ -135,7 +167,7 @@ Return ONLY a strict JSON object with this exact structure (no markdown, no expl
             config: {
                 systemInstruction,
                 responseMimeType: 'application/json',
-                temperature: 0.1,  // slight variation prevents rigid/lazy scoring
+                temperature: 0,     // zero for maximum consistency & to prevent generous drift
                 topP: 0.85,
                 topK: 40,
             },
