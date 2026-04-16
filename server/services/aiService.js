@@ -200,3 +200,124 @@ Return ONLY a strict JSON object with this exact structure (no markdown, no extr
         throw new Error(`Failed to analyze resume: ${error.message}`);
     }
 };
+
+// --- FEATURE 3: INTERVIEW PREPARATION MODULE ---
+
+export const generateInterviewQuestion = async (targetRole, experienceLevel, jobDescription, pastQuestions) => {
+    try {
+        if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is missing');
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+        let promptText = `Target Role: ${targetRole}\nExperience Level: ${experienceLevel}\n`;
+        if (jobDescription) promptText += `Job Description Context: ${jobDescription}\n`;
+
+        if (pastQuestions && pastQuestions.length > 0) {
+            promptText += `\nPast Questions Asked In This Session:\n`;
+            pastQuestions.forEach((q, i) => promptText += `${i + 1}. ${q.questionText}\n`);
+            promptText += `\nGenerate the NEXT technical interview question. Do NOT repeat past questions or topics. Progress the interview naturally.`;
+        } else {
+            promptText += `\nGenerate the FIRST question for this technical interview. Start with something foundational but relevant.`;
+        }
+
+        const systemInstruction = `You are an expert technical interviewer.
+Based on the role, experience level, and past questions, generate ONE highly relevant, realistic technical interview question.
+Do NOT output anything except a strict JSON object with this format:
+{
+  "questionText": "The actual question you are asking the candidate."
+}`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: promptText,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                temperature: 0.7,
+            },
+        });
+
+        const cleanText = (response.text ?? '{}').replace(/^```json\n|```$/g, '').trim();
+        return JSON.parse(cleanText).questionText;
+    } catch (error) {
+        console.error('Error generating interview question:', error);
+        throw new Error('Failed to generate interview question.');
+    }
+};
+
+export const evaluateInterviewAnswer = async (questionText, userAnswer) => {
+    try {
+        if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is missing');
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+        const promptText = `Question Asked: ${questionText}\n\nCandidate's Answer: ${userAnswer}\n\nEvaluate this answer blindly and objectively.`;
+
+        const systemInstruction = `You are a strict technical interviewer grading candidate answers.
+Evaluate the candidate's answer to the question. Focus on accuracy, depth, clarity, and correctness.
+Return ONLY a strict JSON object with this exact format:
+{
+  "score": Number, // Rating from 1 to 10
+  "aiFeedback": String // Actionable feedback: what was good, what was missing, or how to improve
+}`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: promptText,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                temperature: 0.2, // Need consistent, relatively strict grading
+            },
+        });
+
+        const cleanText = (response.text ?? '{}').replace(/^```json\n|```$/g, '').trim();
+        return JSON.parse(cleanText);
+    } catch (error) {
+        console.error('Error evaluating interview answer:', error);
+        throw new Error('Failed to evaluate interview answer.');
+    }
+};
+
+export const generateFinalInterviewSummary = async (targetRole, experienceLevel, questionsAndAnswers) => {
+    try {
+        if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is missing');
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+        let promptText = `Interview for: ${targetRole} (${experienceLevel})\n\nInterview Transcript:\n`;
+        questionsAndAnswers.forEach((qa, i) => {
+            promptText += `\nQ${i + 1}: ${qa.questionText}\n`;
+            promptText += `Candidate Answer: ${qa.userAnswer}\n`;
+            promptText += `AI Score: ${qa.score}/10\n`;
+            promptText += `Feedback Given: ${qa.aiFeedback}\n`;
+        });
+
+        promptText += `\nProvide a final comprehensive performance review based on the entire transcript.`;
+
+        const systemInstruction = `You are a Senior Engineering Manager deciding whether to pass a candidate to the next round.
+Review the entire transcript of their answers and the scores they received.
+Format your output EXACTLY as this JSON structure:
+{
+  "finalScore": Number, // Overall score roughly out of 100 based on their average performance
+  "finalFeedback": {
+    "strengths": [String], // Array of strong areas
+    "weaknesses": [String], // Array of areas requiring improvement
+    "overallAnalysis": String // 2-3 sentence summary of their performance
+  }
+}`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: promptText,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                temperature: 0.3,
+            },
+        });
+
+        const cleanText = (response.text ?? '{}').replace(/^```json\n|```$/g, '').trim();
+        return JSON.parse(cleanText);
+    } catch (error) {
+        console.error('Error generating interview summary:', error);
+        throw new Error('Failed to generate final interview summary.');
+    }
+};

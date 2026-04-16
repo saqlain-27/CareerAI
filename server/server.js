@@ -9,6 +9,7 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import resumeRoutes from './routes/resumeRoutes.js';
+import interviewRoutes from './routes/interviewRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -36,6 +37,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/resume', resumeRoutes);
+app.use('/api/interview', interviewRoutes);
 
 // --- Error Handling ---
 app.use(notFound);
