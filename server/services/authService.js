@@ -9,13 +9,16 @@ const formatUser = (user) => ({
 });
 
 export const registerUser = async (name, email, password) => {
+
+    name = name?.trim();
+    email = email?.trim().toLowerCase();
+    password = password?.trim();
+
     if (!name || !email || !password) {
         const error = new Error('All fields are required');
         error.statusCode = 400;
         throw error;
     }
-
-    email = email.toLowerCase();
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -41,6 +44,10 @@ export const registerUser = async (name, email, password) => {
 };
 
 export const loginUser = async (email, password) => {
+
+    email = email?.trim().toLowerCase();
+    password = password?.trim();
+
     if (!email || !password) {
         const error = new Error('Email and password are required');
         error.statusCode = 400;

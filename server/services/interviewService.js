@@ -1,7 +1,6 @@
 import InterviewSession from '../models/InterviewSession.js';
 import InterviewQuestion from '../models/InterviewQuestion.js';
 
-// Creates a new interview session
 export const createSession = async (userId, targetRole, jobDescription, experienceLevel) => {
     const session = await InterviewSession.create({
         user: userId,
@@ -13,7 +12,6 @@ export const createSession = async (userId, targetRole, jobDescription, experien
     return session;
 };
 
-// Adds a new question to the active session
 export const addQuestion = async (sessionId, questionText, questionOrder) => {
     const question = await InterviewQuestion.create({
         interviewSession: sessionId,
@@ -23,7 +21,6 @@ export const addQuestion = async (sessionId, questionText, questionOrder) => {
     return question;
 };
 
-// Updates an existing question with the user's answer and AI evaluation
 export const updateAnswerAndFeedback = async (questionId, userAnswer, aiFeedback, score) => {
     const question = await InterviewQuestion.findByIdAndUpdate(
         questionId,
@@ -33,7 +30,6 @@ export const updateAnswerAndFeedback = async (questionId, userAnswer, aiFeedback
     return question;
 };
 
-// Completes the session with the final generated summary
 export const completeSession = async (sessionId, finalScore, finalFeedback) => {
     const session = await InterviewSession.findByIdAndUpdate(
         sessionId,
@@ -47,15 +43,13 @@ export const completeSession = async (sessionId, finalScore, finalFeedback) => {
     return session;
 };
 
-// Retrieves a high-level history of past sessions for the user dashboard
 export const getInterviewHistory = async (userId) => {
     const sessions = await InterviewSession.find({ user: userId })
         .sort({ createdAt: -1 })
-        .select('-finalFeedback'); // Omit heavy JSON payload for the summary view
+        .select('-finalFeedback');
     return sessions;
 };
 
-// Retrieves full details of a specific session, including all its asked questions
 export const getSessionDetails = async (sessionId, userId) => {
     const session = await InterviewSession.findOne({ _id: sessionId, user: userId });
 

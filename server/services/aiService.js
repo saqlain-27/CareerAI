@@ -75,7 +75,7 @@ export const analyzeResume = async (resumeText, jobDescription) => {
         const systemInstruction = `You are an extremely strict, cynical, no-nonsense ATS system combined with a brutally honest senior technical recruiter who has rejected thousands of resumes over 15+ years.
 
 You score resumes harshly and realistically — just like real competitive job markets. 
-Most decent resumes score 45–68. Well-tailored strong ones usually get 70–80. 
+Most decent resumes score 45-68. Well-tailored strong ones usually get 70-80. 
 Scores of 85+ are VERY rare and ONLY for near-perfect, highly tailored resumes that hit almost every requirement with strong evidence and impact. 
 90+ is practically impossible in real life.
 
@@ -87,11 +87,11 @@ SCORING RUBRIC (total = 100 points) — allocate points conservatively:
 1. Keyword Match (35 pts) 
    - Extremely tight matching required. Exact or very close variants only. 
    - Synonyms / related terms get only partial credit at best.
-   - <40% important keywords present → 0–9 pts
-   - 40–60% → 10–17 pts
-   - 60–80% → 18–25 pts
-   - 80–95% with good context/placement → 26–32 pts
-   - 95%+ near-perfect coverage → 33–35 pts only
+   - <40% important keywords present → 0-9 pts
+   - 40-60% → 10-17 pts
+   - 60-80% → 18-25 pts
+   - 80-95% with good context/placement → 26-32 pts
+   - 95%+ near-perfect coverage → 33-35 pts only
 
 2. Work Experience Relevance (25 pts) 
    - Must be directly relevant roles & responsibilities. 
@@ -100,8 +100,8 @@ SCORING RUBRIC (total = 100 points) — allocate points conservatively:
 
 3. Education & Certifications (10 pts) 
    - Meets exact requirements? → full points possible.
-   - Close but not exact, or missing key certs → 4–7 max.
-   - Irrelevant or missing → 0–3.
+   - Close but not exact, or missing key certs → 4-7 max.
+   - Irrelevant or missing → 0-3.
 
 4. Resume Formatting & ATS Compatibility (15 pts) 
    - Clean plain text, standard headers, no tables/columns/images/fancy formatting → high score.
@@ -109,13 +109,13 @@ SCORING RUBRIC (total = 100 points) — allocate points conservatively:
 
 5. Achievements & Impact (15 pts) 
    - Quantifiable achievements (%, $, numbers, before/after) required for good points.
-   - Generic duties/responsibilities only → 0–5 pts max.
-   - Strong metrics in relevant areas → up to 12–15 only if exceptional.
+   - Generic duties/responsibilities only → 0-5 pts max.
+   - Strong metrics in relevant areas → up to 12-15 only if exceptional.
 
 SCORING RULES — follow strictly:
-- Typical good-but-not-tailored resumes: 50–68
-- Strong tailored resumes: 70–82
-- Only near-perfect matches: 83–89 (very rare)
+- Typical good-but-not-tailored resumes: 50-68
+- Strong tailored resumes: 70-82
+- Only near-perfect matches: 83-89 (very rare)
 - Do NOT give partial points generously. Be stingy.
 - Every weakness must be reflected in lower category scores.
 - missingKeywords: list ALL meaningful missing terms from JD (be comprehensive).
@@ -201,15 +201,15 @@ Return ONLY a strict JSON object with this exact structure (no markdown, no extr
     }
 };
 
-// --- FEATURE 3: INTERVIEW PREPARATION MODULE ---
-
 export const generateInterviewQuestion = async (targetRole, experienceLevel, jobDescription, pastQuestions) => {
     try {
-        if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is missing');
+        if (!process.env.GEMINI_API_KEY)
+            throw new Error('GEMINI_API_KEY is missing');
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
         let promptText = `Target Role: ${targetRole}\nExperience Level: ${experienceLevel}\n`;
-        if (jobDescription) promptText += `Job Description Context: ${jobDescription}\n`;
+        if (jobDescription)
+            promptText += `Job Description Context: ${jobDescription}\n`;
 
         if (pastQuestions && pastQuestions.length > 0) {
             promptText += `\nPast Questions Asked In This Session:\n`;
@@ -220,11 +220,11 @@ export const generateInterviewQuestion = async (targetRole, experienceLevel, job
         }
 
         const systemInstruction = `You are an expert technical interviewer.
-Based on the role, experience level, and past questions, generate ONE highly relevant, realistic technical interview question.
-Do NOT output anything except a strict JSON object with this format:
-{
-  "questionText": "The actual question you are asking the candidate."
-}`;
+    Based on the role, experience level, and past questions, generate ONE highly relevant, realistic technical interview question.
+    Do NOT output anything except a strict JSON object with this format:
+    {
+    "questionText": "The actual question you are asking the candidate."
+    }`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',

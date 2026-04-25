@@ -12,15 +12,13 @@ export const saveAnalysis = async (userId, resumeName, jobDescription, resumeTex
     return analysis;
 };
 
-// Retrieve all past analyses for a specific user
 export const getUserAnalyses = async (userId) => {
     const analyses = await ResumeAnalysis.find({ user: userId })
         .sort({ createdAt: -1 })
-        .select('-resumeText'); // Exclude the raw text in mass queries to save bandwidth
+        .select('-resumeText');
     return analyses;
 };
 
-// Retrieve a specific analysis full detail
 export const getAnalysisById = async (analysisId, userId) => {
     const analysis = await ResumeAnalysis.findOne({ _id: analysisId, user: userId });
 

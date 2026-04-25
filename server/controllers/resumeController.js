@@ -2,9 +2,6 @@ import { extractTextFromPDF } from '../services/fileExtractorService.js';
 import { analyzeResume } from '../services/aiService.js';
 import { saveAnalysis, getUserAnalyses, getAnalysisById } from '../services/resumeService.js';
 
-// @desc    Upload resume, extract text, and get AI ATS analysis
-// @route   POST /api/resume/analyze
-// @access  Private
 export const uploadResume = async (req, res, next) => {
     try {
         // 1. Check if a file was uploaded via Multer
@@ -25,10 +22,8 @@ export const uploadResume = async (req, res, next) => {
             throw new Error('Could not extract any text from the uploaded PDF. Please ensure it is a valid text-based PDF.');
         }
 
-        // 3. Send text and JD to Gemini for ATS Analysis
         const aiResult = await analyzeResume(resumeText, jobDescription);
 
-        // 4. Save everything to the MongoDB database
         const analysisRecord = await saveAnalysis(
             userId,
             resumeName,
@@ -38,7 +33,6 @@ export const uploadResume = async (req, res, next) => {
             aiResult.analysis
         );
 
-        // 5. Return the full structured result to the frontend
         res.status(201).json({
             success: true,
             data: analysisRecord
@@ -48,9 +42,6 @@ export const uploadResume = async (req, res, next) => {
     }
 };
 
-// @desc    Get all past resume analyses for logged-in user
-// @route   GET /api/resume/history
-// @access  Private
 export const getResumeHistory = async (req, res, next) => {
     try {
         const userId = req.user.id || req.user._id;
@@ -66,9 +57,6 @@ export const getResumeHistory = async (req, res, next) => {
     }
 };
 
-// @desc    Get a specific resume analysis by ID
-// @route   GET /api/resume/history/:id
-// @access  Private
 export const getResumeAnalysis = async (req, res, next) => {
     try {
         const userId = req.user.id || req.user._id;
