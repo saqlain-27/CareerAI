@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode toggling in Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
