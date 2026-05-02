@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { FiSun, FiMoon } from 'react-icons/fi';
 
 const Landing = () => {
-  const { theme, toggleTheme } = useAuth();
+  const { user, theme, toggleTheme } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -16,10 +16,18 @@ const Landing = () => {
           >
             {theme === 'dark' ? <FiSun size={24} className="text-yellow-400" /> : <FiMoon size={24} className="text-gray-600" />}
           </button>
-          <Link to="/login" className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Log In</Link>
-          <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/30">
-            Get Started
-          </Link>
+          {user ? (
+            <Link to="/dashboard" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/30">
+              Go to Dashboard ✨
+            </Link>
+          ) : (
+            <>
+              <Link to="/login" className="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Log In</Link>
+              <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/30">
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -32,9 +40,15 @@ const Landing = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all shadow-xl shadow-blue-500/30 hover:-translate-y-1">
-            Start For Free
-          </Link>
+          {user ? (
+            <Link to="/dashboard" className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all shadow-xl shadow-blue-500/30 hover:-translate-y-1">
+              Go to your Dashboard
+            </Link>
+          ) : (
+            <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-4 rounded-xl font-bold transition-all shadow-xl shadow-blue-500/30 hover:-translate-y-1">
+              Start For Free
+            </Link>
+          )}
         </div>
 
         <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 w-full text-left">

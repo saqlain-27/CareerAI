@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { loginUser, registerUser, logoutUser } from '../services/authService';
 
@@ -9,6 +10,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     // Theme state
     const [theme, setTheme] = useState(() => {
@@ -56,6 +58,21 @@ export const AuthProvider = ({ children }) => {
         };
         checkAuth();
     }, []);
+
+    // Listen for global 401 Unauthorized events from the Axios interceptor
+    useEffect(() => {
+        const handleUnauthorized = () => {
+            if (user) { // Only show toast if they were actually logged in
+                setUser(null);
+                localStorage.removeItem('user');
+                toast.error('Session expired. Please log in again.');
+                navigate('/login');
+            }
+        };
+
+        window.addEventListener('auth:unauthorized', handleUnauthorized);
+        return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    }, [navigate, user]);
 
     const login = async (email, password) => {
         try {

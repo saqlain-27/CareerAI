@@ -9,4 +9,16 @@ const api = axios.create({
     },
 });
 
+// Global interceptor to handle expired JWT tokens (401 Unauthorized)
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // Dispatch a custom event so the React layer can handle the routing smoothly
+            window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default api;

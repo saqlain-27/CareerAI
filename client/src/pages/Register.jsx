@@ -24,7 +24,7 @@ const Register = () => {
     };
 
     return (
-        <div className="relative min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div className="relative min-h-screen flex flex-col justify-center items-center p-4 sm:p-0 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
             {isLoading && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex flex-col gap-3 items-center justify-center z-50">
                     <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -32,13 +32,12 @@ const Register = () => {
                 </div>
             )}
 
-            <div className="absolute top-6 right-6 z-10">
-                <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-800 dark:text-gray-200">
-                    {theme === 'dark' ? <FiSun size={24} className="text-yellow-400" /> : <FiMoon size={24} />}
-                </button>
-            </div>
-
-            <div className="w-full sm:max-w-md mt-6 px-10 py-12 bg-white dark:bg-gray-800 shadow-2xl dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden sm:rounded-3xl">
+            <div className="relative w-full sm:max-w-md px-6 py-10 sm:px-10 sm:py-12 bg-white dark:bg-gray-800 shadow-2xl dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden rounded-3xl">
+                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
+                    <button onClick={toggleTheme} className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 transition-all text-gray-800 dark:text-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5">
+                        {theme === 'dark' ? <FiSun size={20} className="text-yellow-400" /> : <FiMoon size={20} />}
+                    </button>
+                </div>
                 <div className="mb-8 text-center">
                     <Link to="/" className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">CareerAI</Link>
                     <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Create an account</h2>
