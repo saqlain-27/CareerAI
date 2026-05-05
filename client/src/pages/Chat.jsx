@@ -139,10 +139,10 @@ const Chat = () => {
     );
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="flex h-full bg-white dark:bg-gray-800">
 
             {/* Desktop Left Pane - History Sidebar */}
-            <div className="w-64 flex-shrink-0 bg-gray-50 dark:bg-gray-900/50 border-r border-gray-200 dark:border-gray-700 flex flex-col max-md:hidden">
+            <div className="w-64 flex-shrink-0 bg-gray-50 dark:bg-[#0b1120] border-r border-gray-200 dark:border-gray-700 flex flex-col max-md:hidden z-10">
                 {SidebarContent}
             </div>
 
@@ -161,7 +161,7 @@ const Chat = () => {
             </div>
 
             {/* Right Pane - Main Chat Area */}
-            <div className="flex-1 flex flex-col relative bg-white dark:bg-gray-800 min-w-0">
+            <div className="flex-1 flex flex-col relative bg-white dark:bg-gray-800 min-w-0 overflow-hidden">
                 {/* Mobile Header */}
                 <div className="md:hidden flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-10 shadow-sm">
                     <button
