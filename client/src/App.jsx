@@ -7,6 +7,7 @@ import PublicRoute from './components/PublicRoute';
 import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
+import ResumeAnalyzer from './pages/ResumeAnalyzer';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/resume" element={<ResumeAnalyzer />} />
         </Route>
       </Route>
 

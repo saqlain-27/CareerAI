@@ -105,8 +105,8 @@ const DashboardLayout = () => {
                 </header>
 
                 {/* Scrollable Page Content */}
-                <main className={`flex-1 overflow-y-auto relative ${location.pathname.startsWith('/chat') ? 'p-0 bg-gray-100 dark:bg-[#0b1121]' : 'p-6 md:p-10'}`}>
-                    <div className={`${location.pathname.startsWith('/chat') ? 'h-full' : 'max-w-6xl mx-auto'}`}>
+                <main className={`flex-1 overflow-y-auto relative ${(location.pathname.startsWith('/chat') || location.pathname.startsWith('/resume')) ? 'p-0 bg-gray-100 dark:bg-[#0b1121]' : 'p-6 md:p-10'}`}>
+                    <div className={`${(location.pathname.startsWith('/chat') || location.pathname.startsWith('/resume')) ? 'h-full' : 'max-w-6xl mx-auto'}`}>
                         <Outlet />
                     </div>
                 </main>
