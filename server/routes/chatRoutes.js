@@ -1,5 +1,5 @@
 import express from 'express';
-import { startChat, getAllChats, getChat, sendMessage } from '../controllers/chatController.js';
+import { startChat, getAllChats, getChat, sendMessage, deleteChat } from '../controllers/chatController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import rateLimit from 'express-rate-limit';
 
@@ -18,6 +18,7 @@ router.use(protect);
 router.post('/', startChat);
 router.get('/', getAllChats);
 router.get('/:id', getChat);
+router.delete('/:id', deleteChat);
 router.post('/:id/message', messageLimiter, sendMessage);
 
 export default router;

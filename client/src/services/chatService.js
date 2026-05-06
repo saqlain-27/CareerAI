@@ -49,3 +49,14 @@ export const sendMessage = async (chatId, content) => {
         throw error;
     }
 };
+
+// Delete a chat session
+export const deleteChat = async (chatId) => {
+    try {
+        const response = await api.delete(`/chat/${chatId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting chat:', error);
+        throw error;
+    }
+};

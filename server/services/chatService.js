@@ -39,3 +39,20 @@ export const addMessage = async (chatId, role, content) => {
 
     return message;
 };
+
+export const deleteMessageById = async (messageId, chatId) => {
+    await Message.deleteOne({ _id: messageId, chat: chatId });
+};
+
+export const deleteChatById = async (chatId, userId) => {
+    const chat = await Chat.findOne({ _id: chatId, user: userId });
+
+    if (!chat) {
+        throw new Error('Chat not found or unauthorized');
+    }
+
+    await Message.deleteMany({ chat: chatId });
+    await Chat.deleteOne({ _id: chatId });
+
+    return chat;
+};

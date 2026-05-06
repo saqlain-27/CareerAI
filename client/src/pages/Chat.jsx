@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FiSend, FiPlus, FiMessageSquare, FiMenu, FiCode, FiMic } from 'react-icons/fi';
-import { startNewChat, getAllChats, getChatHistory, sendMessage } from '../services/chatService';
+import { FiSend, FiPlus, FiMessageSquare, FiMenu, FiCode, FiMic, FiTrash2, FiAlertCircle } from 'react-icons/fi';
+import { startNewChat, getAllChats, getChatHistory, sendMessage, deleteChat } from '../services/chatService';
 import Markdown from 'react-markdown';
+import toast from 'react-hot-toast';
 
 const Chat = () => {
     const { user } = useAuth();
@@ -15,6 +16,8 @@ const Chat = () => {
     const [isTyping, setIsTyping] = useState(false);
     const [selectedMode, setSelectedMode] = useState('normal');
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [deletingChatId, setDeletingChatId] = useState(null);
+    const [chatToDelete, setChatToDelete] = useState(null);
 
     const modes = [
         { id: 'normal', label: 'Career Coach', icon: <FiMessageSquare size={18} /> },
@@ -61,12 +64,41 @@ const Chat = () => {
         }
     };
 
+    const handleDeleteChat = (chat) => {
+        setChatToDelete(chat);
+    };
+
+    const confirmDeleteChat = async () => {
+        if (!chatToDelete) return;
+
+        const chatId = chatToDelete._id;
+        setDeletingChatId(chatId);
+
+        try {
+            await deleteChat(chatId);
+
+            if (activeChat === chatId) {
+                setActiveChat(null);
+                setMessages([]);
+            }
+
+            await loadChats();
+            setChatToDelete(null);
+        } catch (error) {
+            console.error('Failed to delete chat', error);
+        } finally {
+            setDeletingChatId(null);
+        }
+    };
+
     const handleSend = async (e) => {
         e.preventDefault();
         if (!input.trim() || isTyping) return;
 
         // If no active chat, create one automatically
         let currentChatId = activeChat;
+        let isNewChat = false;
+
         if (!currentChatId) {
             try {
                 // Generate a clean title from the first few words of the message
@@ -77,8 +109,10 @@ const Chat = () => {
                 setChats([newChat, ...chats]);
                 currentChatId = newChat._id;
                 setActiveChat(currentChatId);
+                isNewChat = true;
             } catch (error) {
-                console.error('Failed to auto-create chat');
+                console.error('Failed to auto-create chat', error);
+                toast.error(error.response?.data?.message || 'Failed to start chat. Please try again.');
                 return;
             }
         }
@@ -102,9 +136,16 @@ const Chat = () => {
 
             // If it was a new chat, we might want to refresh the history list to get updated titles, but we'll skip for performance unless needed.
         } catch (error) {
-            console.error('Failed to send message');
+            console.error('Failed to send message', error);
             // Remove optimistic message on failure
             setMessages(prev => prev.filter(m => m._id !== optimisticMsg._id));
+
+            if (isNewChat) {
+                setActiveChat(null);
+                await loadChats();
+            }
+
+            toast.error(error.response?.data?.message || 'Failed to send message. Please try again.');
         } finally {
             setIsTyping(false);
         }
@@ -125,14 +166,26 @@ const Chat = () => {
             <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-1">
                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-2 py-2 mb-1">Recent Chats</p>
                 {chats.map(chat => (
-                    <button
+                    <div
                         key={chat._id}
-                        onClick={() => { loadChatHistory(chat._id); setIsMobileSidebarOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-colors truncate ${activeChat === chat._id ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700/50'}`}
+                        className={`w-full flex items-center rounded-lg transition-colors ${activeChat === chat._id ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700/50'}`}
                     >
-                        <FiMessageSquare size={18} className="flex-shrink-0" />
-                        <span className="truncate text-sm">{chat.title}</span>
-                    </button>
+                        <button
+                            onClick={() => { loadChatHistory(chat._id); setIsMobileSidebarOpen(false); }}
+                            className="flex-1 min-w-0 flex items-center gap-3 px-3 py-3 text-left truncate"
+                        >
+                            <FiMessageSquare size={18} className="flex-shrink-0" />
+                            <span className="truncate text-sm">{chat.title}</span>
+                        </button>
+                        <button
+                            onClick={() => handleDeleteChat(chat)}
+                            disabled={deletingChatId === chat._id}
+                            className="flex-shrink-0 p-2 mr-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                            title="Delete chat"
+                        >
+                            <FiTrash2 size={16} />
+                        </button>
+                    </div>
                 ))}
             </div>
         </>
@@ -159,6 +212,50 @@ const Chat = () => {
                     {SidebarContent}
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {chatToDelete && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        onClick={() => {
+                            if (!deletingChatId) setChatToDelete(null);
+                        }}
+                    ></div>
+
+                    <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+                                <FiAlertCircle size={24} />
+                            </div>
+                            <div className="min-w-0">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Delete chat?</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    This will permanently remove "{chatToDelete.title}" and all messages in this conversation.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+                            <button
+                                onClick={() => setChatToDelete(null)}
+                                disabled={!!deletingChatId}
+                                className="px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteChat}
+                                disabled={!!deletingChatId}
+                                className="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white transition-colors font-bold shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:hover:bg-red-600 flex items-center justify-center gap-2"
+                            >
+                                <FiTrash2 size={18} />
+                                {deletingChatId ? 'Deleting...' : 'Delete Chat'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Right Pane - Main Chat Area */}
             <div className="flex-1 flex flex-col relative bg-white dark:bg-gray-800 min-w-0 overflow-hidden">

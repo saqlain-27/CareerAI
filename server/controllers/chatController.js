@@ -1,4 +1,4 @@
-import { createChat, getUserChats, getChatHistory, addMessage } from '../services/chatService.js';
+import { createChat, getUserChats, getChatHistory, addMessage, deleteMessageById, deleteChatById } from '../services/chatService.js';
 import { generateResponse } from '../services/aiService.js';
 
 export const startChat = async (req, res, next) => {
@@ -64,11 +64,20 @@ export const sendMessage = async (req, res, next) => {
 
         const fullHistoryForAI = [...existingMessages, userMessage];
 
-        console.log(fullHistoryForAI);
+        let aiMessage;
 
-        const aiResponseText = await generateResponse(fullHistoryForAI, chat.mode);
+        try {
+            const aiResponseText = await generateResponse(fullHistoryForAI, chat.mode);
+            aiMessage = await addMessage(chatId, 'assistant', aiResponseText);
+        } catch (error) {
+            if (existingMessages.length === 0) {
+                await deleteChatById(chatId, userId);
+            } else {
+                await deleteMessageById(userMessage._id, chatId);
+            }
 
-        const aiMessage = await addMessage(chatId, 'assistant', aiResponseText);
+            throw error;
+        }
 
         res.status(200).json({
             success: true,
@@ -78,8 +87,28 @@ export const sendMessage = async (req, res, next) => {
     } catch (error) {
         if (error.message === 'Chat not found or unauthorized') {
             res.status(404);
+        } else if (error.statusCode) {
+            res.status(error.statusCode);
         } else if (res.statusCode === 200) {
             res.status(500);
+        }
+        next(error);
+    }
+};
+
+export const deleteChat = async (req, res, next) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        const deletedChat = await deleteChatById(req.params.id, userId);
+
+        res.status(200).json({
+            success: true,
+            message: 'Chat deleted successfully',
+            chat: deletedChat,
+        });
+    } catch (error) {
+        if (error.message === 'Chat not found or unauthorized') {
+            res.status(404);
         }
         next(error);
     }

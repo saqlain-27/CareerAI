@@ -34,6 +34,33 @@ Follow these rules strictly:
     }
 };
 
+const createChatAiError = (error) => {
+    const rawMessage = typeof error?.message === 'string' ? error.message : '';
+    const rawStatus = error?.status || error?.code || '';
+    const errorText = `${rawMessage} ${rawStatus}`.toLowerCase();
+
+    if (errorText.includes('503') || errorText.includes('unavailable') || errorText.includes('high demand')) {
+        const unavailableError = new Error('AI is busy right now. Please try again in a moment.');
+        unavailableError.statusCode = 503;
+        return unavailableError;
+    }
+
+    if (
+        errorText.includes('429') ||
+        errorText.includes('quota') ||
+        errorText.includes('rate limit') ||
+        errorText.includes('resource_exhausted')
+    ) {
+        const limitError = new Error('AI usage limit reached. Please try again later.');
+        limitError.statusCode = 429;
+        return limitError;
+    }
+
+    const fallbackError = new Error('AI response failed. Please try again.');
+    fallbackError.statusCode = 500;
+    return fallbackError;
+};
+
 export const generateResponse = async (messages, mode = 'normal') => {
     try {
         if (!process.env.GEMINI_API_KEY) {
@@ -48,7 +75,7 @@ export const generateResponse = async (messages, mode = 'normal') => {
         }));
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite',
             contents,
             config: {
                 systemInstruction: getSystemInstruction(mode),
@@ -58,7 +85,7 @@ export const generateResponse = async (messages, mode = 'normal') => {
         return response.text ?? '';
     } catch (error) {
         console.error('Error generating AI response:', error);
-        throw new Error(`Failed to generate AI response: ${error.message}`);
+        throw createChatAiError(error);
     }
 };
 
