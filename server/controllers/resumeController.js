@@ -1,6 +1,6 @@
 import { extractTextFromPDF } from '../services/fileExtractorService.js';
 import { analyzeResume } from '../services/aiService.js';
-import { saveAnalysis, getUserAnalyses, getAnalysisById } from '../services/resumeService.js';
+import { saveAnalysis, getUserAnalyses, getAnalysisById, deleteAnalysisById } from '../services/resumeService.js';
 
 export const uploadResume = async (req, res, next) => {
     try {
@@ -38,6 +38,9 @@ export const uploadResume = async (req, res, next) => {
             data: analysisRecord
         });
     } catch (error) {
+        if (error.statusCode) {
+            res.status(error.statusCode);
+        }
         next(error);
     }
 };
@@ -67,6 +70,26 @@ export const getResumeAnalysis = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: analysis
+        });
+    } catch (error) {
+        if (error.message === 'Resume analysis not found or unauthorized') {
+            res.status(404);
+        }
+        next(error);
+    }
+};
+
+export const deleteResumeAnalysis = async (req, res, next) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        const analysisId = req.params.id;
+
+        const deletedAnalysis = await deleteAnalysisById(analysisId, userId);
+
+        res.status(200).json({
+            success: true,
+            message: 'Resume analysis deleted successfully',
+            data: deletedAnalysis
         });
     } catch (error) {
         if (error.message === 'Resume analysis not found or unauthorized') {

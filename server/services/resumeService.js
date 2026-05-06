@@ -28,3 +28,15 @@ export const getAnalysisById = async (analysisId, userId) => {
 
     return analysis;
 };
+
+export const deleteAnalysisById = async (analysisId, userId) => {
+    const analysis = await ResumeAnalysis.findOne({ _id: analysisId, user: userId });
+
+    if (!analysis) {
+        throw new Error('Resume analysis not found or unauthorized');
+    }
+
+    await ResumeAnalysis.deleteOne({ _id: analysisId });
+
+    return analysis;
+};

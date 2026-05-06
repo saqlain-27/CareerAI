@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { uploadResume, getResumeHistory, getResumeAnalysis } from '../controllers/resumeController.js';
+import { uploadResume, getResumeHistory, getResumeAnalysis, deleteResumeAnalysis } from '../controllers/resumeController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -29,5 +29,6 @@ router.post('/analyze', upload.single('resume'), uploadResume);
 
 router.get('/history', getResumeHistory);
 router.get('/history/:id', getResumeAnalysis);
+router.delete('/history/:id', deleteResumeAnalysis);
 
 export default router;

@@ -37,3 +37,12 @@ export const getResumeAnalysis = async (id) => {
         throw new Error(error.response?.data?.message || 'Failed to fetch resume analysis details');
     }
 };
+
+export const deleteResumeAnalysis = async (id) => {
+    try {
+        const response = await api.delete(`/resume/history/${id}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to delete resume analysis');
+    }
+};

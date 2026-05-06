@@ -34,7 +34,7 @@ Follow these rules strictly:
     }
 };
 
-const createChatAiError = (error) => {
+const createAiError = (error, fallbackMessage = 'AI response failed. Please try again.') => {
     const rawMessage = typeof error?.message === 'string' ? error.message : '';
     const rawStatus = error?.status || error?.code || '';
     const errorText = `${rawMessage} ${rawStatus}`.toLowerCase();
@@ -56,7 +56,7 @@ const createChatAiError = (error) => {
         return limitError;
     }
 
-    const fallbackError = new Error('AI response failed. Please try again.');
+    const fallbackError = new Error(fallbackMessage);
     fallbackError.statusCode = 500;
     return fallbackError;
 };
@@ -85,7 +85,7 @@ export const generateResponse = async (messages, mode = 'normal') => {
         return response.text ?? '';
     } catch (error) {
         console.error('Error generating AI response:', error);
-        throw createChatAiError(error);
+        throw createAiError(error);
     }
 };
 
@@ -224,7 +224,7 @@ Return ONLY a strict JSON object with this exact structure (no markdown, no extr
         return parsed;
     } catch (error) {
         console.error('Error analyzing resume:', error);
-        throw new Error(`Failed to analyze resume: ${error.message}`);
+        throw createAiError(error, 'Resume analysis failed. Please try again.');
     }
 };
 
