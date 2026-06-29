@@ -1,4 +1,4 @@
-import { createSession, addQuestion, updateAnswerAndFeedback, completeSession, getInterviewHistory, getSessionDetails } from '../services/interviewService.js';
+import { createSession, addQuestion, updateAnswerAndFeedback, completeSession, getInterviewHistory, getSessionDetails, deleteSessionById } from '../services/interviewService.js';
 import { generateInterviewQuestion, evaluateInterviewAnswer, generateFinalInterviewSummary } from '../services/aiService.js';
 
 const MAX_QUESTIONS = 5;
@@ -176,6 +176,26 @@ export const getInterviewDetails = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: details
+        });
+    } catch (error) {
+        if (error.message === 'Interview session not found or unauthorized') {
+            res.status(404);
+        }
+        next(error);
+    }
+};
+
+export const deleteInterviewSession = async (req, res, next) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        const { sessionId } = req.params;
+
+        const deletedSession = await deleteSessionById(sessionId, userId);
+
+        res.status(200).json({
+            success: true,
+            message: 'Interview session deleted successfully',
+            session: deletedSession
         });
     } catch (error) {
         if (error.message === 'Interview session not found or unauthorized') {

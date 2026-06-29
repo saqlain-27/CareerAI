@@ -189,7 +189,7 @@ Return ONLY a strict JSON object with this exact structure (no markdown, no extr
         }
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite',
             contents: promptText,
             config: {
                 systemInstruction,
@@ -254,7 +254,7 @@ export const generateInterviewQuestion = async (targetRole, experienceLevel, job
     }`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite',
             contents: promptText,
             config: {
                 systemInstruction,
@@ -287,7 +287,7 @@ Return ONLY a strict JSON object with this exact format:
 }`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite',
             contents: promptText,
             config: {
                 systemInstruction,
@@ -332,7 +332,7 @@ Format your output EXACTLY as this JSON structure:
 }`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite',
             contents: promptText,
             config: {
                 systemInstruction,

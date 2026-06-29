@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FiPlus, FiMenu, FiMic, FiSend, FiUser, FiCode, FiCheckCircle, FiAlertCircle, FiAward, FiStopCircle } from 'react-icons/fi';
+import { FiPlus, FiMenu, FiMic, FiSend, FiUser, FiCode, FiCheckCircle, FiAlertCircle, FiAward, FiStopCircle, FiTrash2 } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
-import { startInterview, submitAnswer, endInterview, getInterviewHistory, getInterviewDetails } from '../services/interviewService';
+import { startInterview, submitAnswer, endInterview, getInterviewHistory, getInterviewDetails, deleteInterviewSession } from '../services/interviewService';
 
 const MockInterview = () => {
     const { user } = useAuth();
@@ -26,6 +26,17 @@ const MockInterview = () => {
     
     // UI State
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const [sessionToDelete, setSessionToDelete] = useState(null);
+    const [deletingSessionId, setDeletingSessionId] = useState(null);
+
+    const refreshHistory = async () => {
+        try {
+            const res = await getInterviewHistory();
+            if (res.data) setHistory(res.data);
+        } catch (err) {
+            console.error("Failed to load history", err);
+        }
+    };
 
     // Auto-scroll chat when questions update or loading starts
     useEffect(() => {
@@ -72,6 +83,32 @@ const MockInterview = () => {
         setJobDescription('');
         setError('');
         setCurrentAnswer('');
+    };
+
+    const handleDeleteSession = (session) => {
+        setSessionToDelete(session);
+    };
+
+    const confirmDeleteSession = async () => {
+        if (!sessionToDelete) return;
+
+        const sessionId = sessionToDelete._id;
+        setDeletingSessionId(sessionId);
+
+        try {
+            await deleteInterviewSession(sessionId);
+
+            if (activeSession?._id === sessionId) {
+                handleNewInterview();
+            }
+
+            await refreshHistory();
+            setSessionToDelete(null);
+        } catch (err) {
+            setError(err.message || 'Failed to delete interview session');
+        } finally {
+            setDeletingSessionId(null);
+        }
     };
 
     const handleStart = async (e) => {
@@ -187,19 +224,31 @@ const MockInterview = () => {
                     <div className="text-center p-4 text-sm text-gray-500">No past interviews found.</div>
                 ) : (
                     history.map(item => (
-                        <button
+                        <div
                             key={item._id}
-                            onClick={() => { loadSession(item._id); setIsMobileSidebarOpen(false); }}
-                            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors truncate ${activeSession?._id === item._id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'}`}
+                            className={`w-full flex items-center rounded-xl transition-colors ${activeSession?._id === item._id ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'}`}
                         >
-                            <FiMic size={18} className="flex-shrink-0" />
-                            <div className="flex-1 overflow-hidden">
-                                <span className="block truncate text-sm">{item.targetRole}</span>
-                                <span className="block text-[10px] opacity-70 mt-0.5">
-                                    {item.status === 'completed' ? `Score: ${item.finalScore || 0}/100` : 'In Progress'}
-                                </span>
-                            </div>
-                        </button>
+                            <button
+                                onClick={() => { loadSession(item._id); setIsMobileSidebarOpen(false); }}
+                                className="flex-1 min-w-0 flex items-center gap-3 px-3 py-3 text-left truncate"
+                            >
+                                <FiMic size={18} className="flex-shrink-0" />
+                                <div className="flex-1 overflow-hidden">
+                                    <span className="block truncate text-sm">{item.targetRole}</span>
+                                    <span className="block text-[10px] opacity-70 mt-0.5">
+                                        {item.status === 'completed' ? `Score: ${item.finalScore || 0}/100` : 'In Progress'}
+                                    </span>
+                                </div>
+                            </button>
+                            <button
+                                onClick={() => handleDeleteSession(item)}
+                                disabled={deletingSessionId === item._id}
+                                className="flex-shrink-0 p-2 mr-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                                title="Delete interview session"
+                            >
+                                <FiTrash2 size={16} />
+                            </button>
+                        </div>
                     ))
                 )}
             </div>
@@ -220,6 +269,50 @@ const MockInterview = () => {
                     {SidebarContent}
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {sessionToDelete && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        onClick={() => {
+                            if (!deletingSessionId) setSessionToDelete(null);
+                        }}
+                    ></div>
+
+                    <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+                                <FiAlertCircle size={24} />
+                            </div>
+                            <div className="min-w-0">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Delete session?</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    This will permanently remove the "{sessionToDelete.targetRole}" interview session and all of its questions.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+                            <button
+                                onClick={() => setSessionToDelete(null)}
+                                disabled={!!deletingSessionId}
+                                className="px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteSession}
+                                disabled={!!deletingSessionId}
+                                className="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white transition-colors font-bold shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:hover:bg-red-600 flex items-center justify-center gap-2"
+                            >
+                                <FiTrash2 size={18} />
+                                {deletingSessionId ? 'Deleting...' : 'Delete Session'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col relative bg-white dark:bg-gray-800 min-w-0 overflow-hidden">

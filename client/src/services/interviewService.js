@@ -56,3 +56,13 @@ export const getInterviewDetails = async (sessionId) => {
         throw new Error(error.response?.data?.message || 'Failed to fetch interview details');
     }
 };
+
+// DELETE /interview/:sessionId
+export const deleteInterviewSession = async (sessionId) => {
+    try {
+        const response = await api.delete(`/interview/${sessionId}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to delete interview session');
+    }
+};

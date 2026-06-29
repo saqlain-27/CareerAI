@@ -62,3 +62,16 @@ export const getSessionDetails = async (sessionId, userId) => {
 
     return { session, questions };
 };
+
+export const deleteSessionById = async (sessionId, userId) => {
+    const session = await InterviewSession.findOne({ _id: sessionId, user: userId });
+
+    if (!session) {
+        throw new Error('Interview session not found or unauthorized');
+    }
+
+    await InterviewQuestion.deleteMany({ interviewSession: sessionId });
+    await InterviewSession.deleteOne({ _id: sessionId });
+
+    return session;
+};
